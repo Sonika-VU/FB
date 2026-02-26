@@ -13,6 +13,8 @@ import com.example.demo.entity.Customer;
 import com.example.demo.jwt.JwtUtil;
 import com.example.demo.service.CustomerService;
 
+import jakarta.validation.Valid;
+
 @RestController
 @RequestMapping("/customer")
 public class CustomerController {
@@ -33,6 +35,7 @@ public class CustomerController {
 
     @PostMapping("/register")
     public CustomerResponseDTO registerCustomer(
+    		@Valid
             @RequestBody CustomerRequestDTO dto){
 
         return service.registerCustomer(dto);
@@ -100,6 +103,35 @@ public class CustomerController {
 
     return service.getAllCustomers();
 
+    }
+    /*
+     * Update Own Account
+     * Only the logged-in customer can update their own data
+     */
+    @PutMapping("/update/{id}")
+    public CustomerResponseDTO updateCustomer(
+
+            @Valid
+            @RequestBody CustomerRequestDTO dto,
+
+            @PathVariable Long id,
+
+            Authentication auth){
+
+        String username = auth.getName();
+
+        CustomerResponseDTO existing =
+                service.getCustomerById(id);
+
+        // Ownership validation
+        if(!existing.getUsername()
+                .equals(username)){
+
+            throw new RuntimeException(
+                    "Access Denied");
+        }
+
+        return service.updateCustomer(dto,id);
     }
     @DeleteMapping("/delete/{id}")
     public String deleteCustomer(

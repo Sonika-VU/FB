@@ -14,93 +14,112 @@ import com.example.demo.repository.CustomerRepository;
 @Service
 public class CustomerProfileService {
 
-@Autowired
-private CustomerProfileRepository profileRepository;
+    @Autowired
+    private CustomerProfileRepository profileRepository;
 
-@Autowired
-private CustomerRepository customerRepository;
-
-public CustomerProfile createProfile(
-
-Long accountNo,
-
-CustomerProfile profile){
-
-Customer customer =
-customerRepository.findById(accountNo)
-.orElseThrow(()->
-new CustomerNotFoundException(
-"Customer Not Found"));
-
-CustomerProfile existingProfile =
-profileRepository
-.findByAccountNo(accountNo);
-
-if(existingProfile != null){
-
-throw new RuntimeException(
-"Profile already exists");
-
-}
-
-CustomerProfile existingPan =
-profileRepository.findByPan(
-profile.getPan());
-
-if(existingPan != null){
-
-throw new RuntimeException(
-"PAN already registered");
-
-}
+    @Autowired
+    private CustomerRepository customerRepository;
 
 
-profile.setAccountNo(
-accountNo);
 
-profile.setCreatedDate(
-LocalDate.now());
+    /*
+     * Create Profile
+     * accountNo = Primary Key + Foreign Key
+     */
+    public CustomerProfile createProfile(
+
+            Long accountNo,
+
+            CustomerProfile profile) {
 
 
-return profileRepository.save(profile);
+        Customer customer =
+                customerRepository.findById(accountNo)
+                .orElseThrow(() ->
+                        new CustomerNotFoundException(
+                                "Customer Not Found"));
 
-}
 
-public CustomerProfile getProfile(
+        /*
+         * Check Existing Profile
+         */
+        CustomerProfile existingProfile =
+                profileRepository.findByAccountNo(accountNo);
 
-Long accountNo){
+        if (existingProfile != null) {
 
-CustomerProfile profile =
-profileRepository
-.findByAccountNo(accountNo);
+            throw new RuntimeException(
+                    "Profile already exists");
+        }
 
-if(profile == null){
 
-throw new RuntimeException(
-"Profile Not Found");
+        /*
+         * Check Duplicate PAN
+         */
+        CustomerProfile existingPan =
+                profileRepository.findByPan(profile.getPan());
 
-}
+        if (existingPan != null) {
 
-return profile;
+            throw new RuntimeException(
+                    "PAN already registered");
+        }
 
-}
 
-public CustomerProfile getByPan(
+        /*
+         * IMPORTANT
+         * Set Customer → MapsId handles accountNo
+         */
+        profile.setCustomer(customer);
 
-String pan){
 
-CustomerProfile profile =
-profileRepository.findByPan(pan);
+        profile.setCreatedDate(
+                LocalDate.now());
 
-if(profile == null){
 
-throw new RuntimeException(
-"PAN Not Found");
+        return profileRepository.save(profile);
 
-}
+    }
 
-return profile;
 
-}
+
+    /*
+     * Get Profile By AccountNo
+     */
+    public CustomerProfile getProfile(
+
+            Long accountNo) {
+
+
+        CustomerProfile profile =
+                profileRepository.findByAccountNo(accountNo);
+
+        if (profile == null) {
+
+            throw new RuntimeException(
+                    "Profile Not Found");
+        }
+
+        return profile;
+
+    }
+
+    public CustomerProfile getByPan(
+
+            String pan) {
+
+
+        CustomerProfile profile =
+                profileRepository.findByPan(pan);
+
+        if (profile == null) {
+
+            throw new RuntimeException(
+                    "PAN Not Found");
+        }
+
+        return profile;
+
+    }
 
 }
