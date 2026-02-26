@@ -5,95 +5,75 @@ import java.time.LocalDate;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import jakarta.persistence.*;
+
 import lombok.Data;
 
 /*
  * Customer Entity
  * ----------------
- * This class represents the "customers" table in the database.
- * It stores customer personal details and login credentials.
- * Each customer will have a unique account number.
+ * Stores authentication and basic identity data.
+ * Used for:
+ * ✔ Login
+ * ✔ JWT
+ * ✔ Identity
  */
 
-@Entity                     // Marks this class as a JPA entity (DB Table)
-@Table(name="customers")    // Table name in PostgreSQL
-@Data                       // Lombok annotation (Generates getters, setters, toString, etc.)
+@Entity
+@Table(name="customers")
+@Data
 public class Customer {
 
-    /*
-     * Primary Key
-     * Account number is auto-generated for every customer.
-     * This acts as unique Customer ID.
-     */
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long accountNo;
+@Id
+@GeneratedValue(strategy=GenerationType.IDENTITY)
+private Long accountNo;
 
 
-    /*
-     * Customer full name
-     */
-    private String customerName;
+/*
+Customer Full Name
+*/
+@Column(nullable=false)
+private String customerName;
 
 
-    /*
-     * Customer email address
-     * Used for communication and notifications.
-     */
-    @Column(unique = true)
-    private String email;
+/*
+Username (Login ID)
+*/
+@Column(unique=true,nullable=false)
+private String username;
 
 
-    /*
-     * Customer phone number
-     * Used for contact and verification.
-     */
-    private String phone;
+/*
+Email Address
+*/
+@Column(unique=true,nullable=false)
+private String email;
 
 
-    /*
-     * Customer residential address
-     */
-    private String address;
+/*
+Phone Number
+*/
+@Column(nullable=false)
+private String phone;
 
 
-    /*
-     * Account type
-     * Example: Savings / Current
-     * Used as bank reference information.
-     */
-    private String accountType;
+/*
+Encrypted Password
+*/
+@JsonProperty(access=JsonProperty.Access.WRITE_ONLY)
+@Column(nullable=false)
+private String password;
 
 
-    /*
-     * Username used for login
-     * Must be unique for each customer.
-     */
-    @Column(unique = true)
-    private String username;
+/*
+Role → CUSTOMER / ADMIN
+*/
+@Column(nullable=false)
+private String role;
 
 
-    /*
-     * Password used for login
-     * Will be stored in encrypted form (BCrypt).
-     * WRITE_ONLY ensures password is accepted in request
-     * but never returned in API response.
-     */
-    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
-    private String password;
-
-
-    /*
-     * Role of the user
-     * Example: CUSTOMER / ADMIN
-     * Useful for security later.
-     */
-    private String role;
-
-
-    /*
-     * Date when customer registered
-     */
-    private LocalDate createdDate;
+/*
+Registration Date
+*/
+private LocalDate createdDate;
 
 }

@@ -13,12 +13,6 @@ import com.example.demo.entity.Customer;
 import com.example.demo.jwt.JwtUtil;
 import com.example.demo.service.CustomerService;
 
-/*
- * CustomerController
- * ------------------
- * Fully secured REST APIs.
- */
-
 @RestController
 @RequestMapping("/customer")
 public class CustomerController {
@@ -29,7 +23,6 @@ public class CustomerController {
     @Autowired
     private JwtUtil jwtUtil;
     
-    /* Constructor for Unit Testing */
     public CustomerController(
     CustomerService service,
     JwtUtil jwtUtil){
@@ -38,10 +31,6 @@ public class CustomerController {
     this.jwtUtil = jwtUtil;
     }
 
-
-    /*
-     * Register Customer
-     */
     @PostMapping("/register")
     public CustomerResponseDTO registerCustomer(
             @RequestBody CustomerRequestDTO dto){
@@ -49,11 +38,6 @@ public class CustomerController {
         return service.registerCustomer(dto);
     }
 
-
-
-    /*
-     * Login Customer
-     */
     @PostMapping("/login")
     public String loginCustomer(
             @RequestBody LoginDTO dto){
@@ -67,12 +51,6 @@ public class CustomerController {
                 c.getRole());
     }
 
-
-
-    /*
-     * Get Own Profile
-     * Most Secure API
-     */
     @GetMapping("/profile")
     public CustomerResponseDTO getProfile(
             Authentication auth){
@@ -82,12 +60,6 @@ public class CustomerController {
         return service.getCustomerByUsernameDTO(username);
     }
 
-
-
-    /*
-     * Get Customer By ID
-     * Ownership Validation
-     */
     @GetMapping("/{id}")
     public CustomerResponseDTO getCustomerById(
             @PathVariable Long id,
@@ -108,12 +80,6 @@ public class CustomerController {
         return dto;
     }
 
-
-
-    /*
-     * List Customers
-     * Only for Admin Later
-     */
     @GetMapping("/list")
     public List<CustomerResponseDTO>
     getAllCustomers(Authentication auth){
@@ -135,40 +101,6 @@ public class CustomerController {
     return service.getAllCustomers();
 
     }
-
-
-    /*
-     * Update Own Account
-     */
-    @PutMapping("/update/{id}")
-    public CustomerResponseDTO updateCustomer(
-
-            @RequestBody CustomerRequestDTO dto,
-
-            @PathVariable Long id,
-
-            Authentication auth){
-
-        String username = auth.getName();
-
-        CustomerResponseDTO existing =
-                service.getCustomerById(id);
-
-        if(!existing.getUsername()
-                .equals(username)){
-
-            throw new RuntimeException(
-                    "Access Denied");
-        }
-
-        return service.updateCustomer(dto,id);
-    }
-
-
-
-    /*
-     * Delete Own Account
-     */
     @DeleteMapping("/delete/{id}")
     public String deleteCustomer(
 

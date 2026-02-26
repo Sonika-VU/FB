@@ -1,28 +1,44 @@
 package com.example.demo.dto;
 
-import lombok.Data;
+import jakarta.validation.constraints.*;
 
-/*
- * CustomerRequestDTO
- * ------------------
- * Used for Registration and Update APIs.
- */
+import lombok.Data;
 
 @Data
 public class CustomerRequestDTO {
 
-    private String customerName;
 
-    private String email;
+@NotBlank(message="Customer name required")
+@Size(min=3,max=50,
+message="Name must be 3-50 characters")
+private String customerName;
 
-    private String phone;
 
-    private String address;
 
-    private String accountType;
+@NotBlank(message="Username required")
+@Size(min=4,max=20,
+message="Username must be 4-20 characters")
+private String username;
 
-    private String username;
 
-    private String password;
+
+@NotBlank(message="Email required")
+@Email(message="Invalid Email")
+private String email;
+
+
+
+@NotBlank(message="Phone required")
+@Pattern(
+regexp="^[0-9]{10}$",
+message="Phone must be 10 digits")
+private String phone;
+
+
+
+@NotBlank(message="Password required")
+@Size(min=6,
+message="Password must be minimum 6 characters")
+private String password;
 
 }

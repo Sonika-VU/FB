@@ -1,0 +1,106 @@
+package com.example.demo.service;
+
+import java.time.LocalDate;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.example.demo.entity.Customer;
+import com.example.demo.entity.CustomerProfile;
+import com.example.demo.exception.CustomerNotFoundException;
+import com.example.demo.repository.CustomerProfileRepository;
+import com.example.demo.repository.CustomerRepository;
+
+@Service
+public class CustomerProfileService {
+
+@Autowired
+private CustomerProfileRepository profileRepository;
+
+@Autowired
+private CustomerRepository customerRepository;
+
+public CustomerProfile createProfile(
+
+Long accountNo,
+
+CustomerProfile profile){
+
+Customer customer =
+customerRepository.findById(accountNo)
+.orElseThrow(()->
+new CustomerNotFoundException(
+"Customer Not Found"));
+
+CustomerProfile existingProfile =
+profileRepository
+.findByAccountNo(accountNo);
+
+if(existingProfile != null){
+
+throw new RuntimeException(
+"Profile already exists");
+
+}
+
+CustomerProfile existingPan =
+profileRepository.findByPan(
+profile.getPan());
+
+if(existingPan != null){
+
+throw new RuntimeException(
+"PAN already registered");
+
+}
+
+
+profile.setAccountNo(
+accountNo);
+
+profile.setCreatedDate(
+LocalDate.now());
+
+
+return profileRepository.save(profile);
+
+}
+
+public CustomerProfile getProfile(
+
+Long accountNo){
+
+CustomerProfile profile =
+profileRepository
+.findByAccountNo(accountNo);
+
+if(profile == null){
+
+throw new RuntimeException(
+"Profile Not Found");
+
+}
+
+return profile;
+
+}
+
+public CustomerProfile getByPan(
+
+String pan){
+
+CustomerProfile profile =
+profileRepository.findByPan(pan);
+
+if(profile == null){
+
+throw new RuntimeException(
+"PAN Not Found");
+
+}
+
+return profile;
+
+}
+
+}

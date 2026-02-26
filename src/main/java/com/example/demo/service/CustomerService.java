@@ -17,236 +17,204 @@ import com.example.demo.repository.CustomerRepository;
 
 /*
  * CustomerService
- * ---------------
- * Business logic for Customer operations.
- * Fully secured and production-ready.
+ * Production Ready
  */
 
 @Service
 public class CustomerService {
 
-    @Autowired
-    private CustomerRepository repository;
+@Autowired
+private CustomerRepository repository;
 
-    @Autowired
-    private BCryptPasswordEncoder encoder;
+@Autowired
+private BCryptPasswordEncoder encoder;
 
 
+/*
+Register Customer
+*/
+public CustomerResponseDTO registerCustomer(CustomerRequestDTO dto){
 
-    /*
-     * Register Customer
-     */
-    public CustomerResponseDTO registerCustomer(CustomerRequestDTO dto){
+Customer existingUser =
+repository.findByUsername(dto.getUsername());
 
-        Customer existingUser =
-                repository.findByUsername(dto.getUsername());
+if(existingUser!=null){
 
-        if(existingUser != null){
+throw new DuplicateUserException(
+"Username already exists");
+}
 
-            throw new DuplicateUserException(
-                    "Username already exists");
-        }
 
-        Customer customer = new Customer();
+Customer existingEmail =
+repository.findByEmail(dto.getEmail());
 
-        customer.setCustomerName(dto.getCustomerName());
-        customer.setEmail(dto.getEmail());
-        customer.setPhone(dto.getPhone());
-        customer.setAddress(dto.getAddress());
-        customer.setAccountType(dto.getAccountType());
-        customer.setUsername(dto.getUsername());
+if(existingEmail!=null){
 
-        customer.setPassword(
-                encoder.encode(dto.getPassword())
-        );
+throw new DuplicateUserException(
+"Email already exists");
+}
 
-        customer.setRole("CUSTOMER");
 
-        customer.setCreatedDate(LocalDate.now());
+Customer customer = new Customer();
 
-        Customer saved =
-                repository.save(customer);
+customer.setCustomerName(
+dto.getCustomerName());
 
-        return convertToDTO(saved);
-    }
+customer.setUsername(
+dto.getUsername());
 
+customer.setEmail(
+dto.getEmail());
 
+customer.setPhone(
+dto.getPhone());
 
-    /*
-     * Login Customer
-     */
-    public Customer loginCustomer(
-            String username,
-            String password){
+customer.setPassword(
+encoder.encode(
+dto.getPassword()));
 
-        Customer customer =
-                repository.findByUsername(username);
+customer.setRole("CUSTOMER");
 
-        if(customer == null){
+customer.setCreatedDate(
+LocalDate.now());
 
-            throw new CustomerNotFoundException(
-                    "Username not found");
-        }
 
-        if(!encoder.matches(
-                password,
-                customer.getPassword())){
+Customer saved=
+repository.save(customer);
 
-            throw new RuntimeException(
-                    "Invalid Password");
-        }
+return convertToDTO(saved);
 
-        return customer;
-    }
+}
 
+/*
+Login Customer
+*/
+public Customer loginCustomer(
+String username,
+String password){
 
+Customer customer =
+repository.findByUsername(username);
 
-    /*
-     * Get Customer By ID
-     */
-    public CustomerResponseDTO getCustomerById(
-            Long id){
+if(customer==null){
 
-        Customer customer =
-                repository.findById(id)
-                .orElseThrow(() ->
-                        new CustomerNotFoundException(
-                                "Customer Not Found"));
+throw new CustomerNotFoundException(
+"Username not found");
+}
 
-        return convertToDTO(customer);
-    }
+if(!encoder.matches(
+password,
+customer.getPassword())){
 
+throw new RuntimeException(
+"Invalid Password");
+}
 
+return customer;
 
-    /*
-     * Get Customer By Username (For Profile API)
-     */
-    public CustomerResponseDTO
-    getCustomerByUsernameDTO(
-            String username){
+}
 
-        Customer customer =
-                repository.findByUsername(username);
 
-        if(customer == null){
+/*
+Get Customer By ID
+*/
+public CustomerResponseDTO getCustomerById(
+Long id){
 
-            throw new CustomerNotFoundException(
-                    "Customer Not Found");
-        }
+Customer customer=
+repository.findById(id)
+.orElseThrow(()->
+new CustomerNotFoundException(
+"Customer Not Found"));
 
-        return convertToDTO(customer);
-    }
+return convertToDTO(customer);
 
+}
 
 
-    /*
-     * Get All Customers
-     * (Admin Use)
-     */
-    public List<CustomerResponseDTO>
-    getAllCustomers(){
+/*
+Get Customer By Username
+*/
+public CustomerResponseDTO
+getCustomerByUsernameDTO(
+String username){
 
-        return repository.findAll()
-                .stream()
-                .map(this::convertToDTO)
-                .collect(Collectors.toList());
-    }
+Customer customer=
+repository.findByUsername(username);
 
+if(customer==null){
 
+throw new CustomerNotFoundException(
+"Customer Not Found");
+}
 
-    /*
-     * Update Customer
-     */
-    public CustomerResponseDTO updateCustomer(
+return convertToDTO(customer);
 
-            CustomerRequestDTO dto,
+}
 
-            Long accountNo){
 
-        Customer customer =
-                repository.findById(accountNo)
-                .orElseThrow(() ->
-                        new CustomerNotFoundException(
-                                "Customer Not Found"));
+/*
+Admin Only
+*/
+public List<CustomerResponseDTO>
+getAllCustomers(){
 
-        customer.setCustomerName(
-                dto.getCustomerName());
+return repository.findAll()
+.stream()
+.map(this::convertToDTO)
+.collect(Collectors.toList());
 
-        customer.setEmail(
-                dto.getEmail());
+}
 
-        customer.setPhone(
-                dto.getPhone());
 
-        customer.setAddress(
-                dto.getAddress());
+/*
+Delete Customer
+*/
+public void deleteCustomer(Long id){
 
-        customer.setAccountType(
-                dto.getAccountType());
+Customer customer=
+repository.findById(id)
+.orElseThrow(()->
+new CustomerNotFoundException(
+"Customer Not Found"));
 
-        Customer updated =
-                repository.save(customer);
+repository.delete(customer);
 
-        return convertToDTO(updated);
-    }
+}
 
 
+/*
+Entity → DTO
+*/
+private CustomerResponseDTO convertToDTO(
+Customer customer){
 
-    /*
-     * Delete Customer
-     */
-    public void deleteCustomer(Long id){
+CustomerResponseDTO dto=
+new CustomerResponseDTO();
 
-        Customer customer =
-                repository.findById(id)
-                .orElseThrow(() ->
-                        new CustomerNotFoundException(
-                                "Customer Not Found"));
+dto.setAccountNo(
+customer.getAccountNo());
 
-        repository.delete(customer);
-    }
+dto.setCustomerName(
+customer.getCustomerName());
 
+dto.setUsername(
+customer.getUsername());
 
+dto.setEmail(
+customer.getEmail());
 
-    /*
-     * Convert Entity → DTO
-     */
-    private CustomerResponseDTO convertToDTO(
-            Customer customer){
+dto.setPhone(
+customer.getPhone());
 
-        CustomerResponseDTO dto =
-                new CustomerResponseDTO();
+dto.setRole(
+customer.getRole());
 
-        dto.setAccountNo(
-                customer.getAccountNo());
+dto.setCreatedDate(
+customer.getCreatedDate());
 
-        dto.setCustomerName(
-                customer.getCustomerName());
+return dto;
 
-        dto.setEmail(
-                customer.getEmail());
-
-        dto.setPhone(
-                customer.getPhone());
-
-        dto.setAddress(
-                customer.getAddress());
-
-        dto.setAccountType(
-                customer.getAccountType());
-
-        dto.setUsername(
-                customer.getUsername());
-
-        dto.setRole(
-                customer.getRole());
-
-        dto.setCreatedDate(
-                customer.getCreatedDate());
-
-        return dto;
-    }
-    
-    
+}
 
 }
