@@ -13,6 +13,7 @@ import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("/profile")
+@CrossOrigin(origins = "http://localhost:4200")
 public class CustomerProfileController {
 
     @Autowired
@@ -89,6 +90,32 @@ public class CustomerProfileController {
         }
         return profileService
                 .getByPan(pan);
+
+    }
+    @GetMapping("/account/{accountNo}")
+    public CustomerProfile getProfileByAccount(
+
+            @PathVariable Long accountNo,
+
+            Authentication auth) {
+
+        boolean isAdmin =
+
+                auth.getAuthorities()
+                .stream()
+                .anyMatch(a ->
+                a.getAuthority()
+                .equals("ADMIN"));
+
+
+        if(!isAdmin){
+
+            throw new RuntimeException(
+                    "Admin Access Required");
+        }
+
+        return profileService
+                .getProfile(accountNo);
 
     }
 }
